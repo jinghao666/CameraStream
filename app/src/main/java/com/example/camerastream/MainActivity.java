@@ -8,6 +8,7 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.ImageFormat;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -20,6 +21,7 @@ import android.view.SurfaceView;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.ByteArrayOutputStream;
@@ -30,6 +32,8 @@ public class MainActivity extends Activity {
     private Camera camera;
     private SurfaceHolder surfaceHolder;
     private ImageView imageView;
+    private TextView textView;
+    private long elapsedTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,6 +54,8 @@ public class MainActivity extends Activity {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.HONEYCOMB)
             surfaceHolder.setType(SurfaceHolder.SURFACE_TYPE_PUSH_BUFFERS);
         imageView = (ImageView) findViewById(R.id.imageView);
+        textView = (TextView) findViewById(R.id.textView);
+        textView.setText("");
     }
 
     @Override
@@ -181,24 +187,56 @@ public class MainActivity extends Activity {
     private Camera.PreviewCallback previewCallback = new Camera.PreviewCallback() {
         @Override
         public synchronized void onPreviewFrame(byte[] data, Camera camera) {
+            // Добавим расчёт времени на обработку одного кадра.
+            long currentTime = System.currentTimeMillis();
+            if (elapsedTime == 0) {
+                elapsedTime = currentTime;
+                currentTime = 0;
+            } else {
+                currentTime -= elapsedTime;
+                elapsedTime += currentTime;
+            }
+            final long time = currentTime;
+
             Camera.Parameters parameters = camera.getParameters();
-            int width = parameters.getPreviewSize().width;
-            int height = parameters.getPreviewSize().height;
+            int format = parameters.getPreviewFormat();
+            //YUV formats require more conversion
+            if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
+                int width = parameters.getPreviewSize().width;
+                int height = parameters.getPreviewSize().height;
 
-            YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
+                YuvImage yuvImage = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
 
-            ByteArrayOutputStream out = new ByteArrayOutputStream();
-            yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                yuvImage.compressToJpeg(new Rect(0, 0, width, height), 100, outputStream);
 
-            byte[] bytes = out.toByteArray();
-            final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                byte[] bytes = outputStream.toByteArray();
 
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    imageView.setImageBitmap(bitmap);
-                }
-            });
+                /*FileOutputStream outStream = null;
+                try {
+                    // Write to SD Card
+                    File file = createFileInSDCard(FOLDER_PATH, "Image_"+System.currentTimeMillis()+".jpg");
+                    //Uri uriSavedImage = Uri.fromFile(file);
+                    outStream = new FileOutputStream(file);
+                    outStream.write(bytes);
+                    outStream.close();
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                } finally {
+                }*/
+
+                final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        imageView.setImageBitmap(bitmap);
+                        textView.setText(elapsedTime == 0 ? "" : String.valueOf(time) + " мс");
+                    }
+                });
+            }
         }
     };
 
