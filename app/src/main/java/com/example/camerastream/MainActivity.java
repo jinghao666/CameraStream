@@ -81,8 +81,6 @@ public class MainActivity extends Activity {
                 finish();
                 return false;
             }
-            camera.setPreviewCallback(previewCallback);
-            //camera.setPreviewCallbackWithBuffer(previewCallback);
         } else {
             Toast.makeText(this, "Извините, на устройстве не обнаружено видеокамеры.",
                     Toast.LENGTH_LONG).show();
@@ -94,6 +92,7 @@ public class MainActivity extends Activity {
 
     private void stopCamera() {
         if (camera != null) {
+            camera.setPreviewCallback(null);
             // Останавливаем предпросмотр.
             camera.stopPreview();
             // Освобождаем камеру для использования другими приложениями.
@@ -148,6 +147,8 @@ public class MainActivity extends Activity {
                     }
                 }
 
+                camera.setPreviewCallback(previewCallback);
+                //camera.setPreviewCallbackWithBuffer(previewCallback);
                 try {
                     camera.setPreviewDisplay(surfaceHolder);
                 } catch (IOException e) {
