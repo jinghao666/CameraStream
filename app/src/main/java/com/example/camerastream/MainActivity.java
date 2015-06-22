@@ -189,19 +189,15 @@ public class MainActivity extends Activity {
         public synchronized void onPreviewFrame(byte[] data, Camera camera) {
             // Добавим расчёт времени на обработку одного кадра.
             long currentTime = System.currentTimeMillis();
-            if (elapsedTime == 0) {
+            if (elapsedTime == 0)
                 elapsedTime = currentTime;
-                currentTime = 0;
-            } else {
-                currentTime -= elapsedTime;
-                elapsedTime += currentTime;
-            }
-            final long time = currentTime;
+            final long time = currentTime - elapsedTime;
+            elapsedTime = currentTime;
 
             Camera.Parameters parameters = camera.getParameters();
             int format = parameters.getPreviewFormat();
             //YUV formats require more conversion
-            if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
+            /*if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
                 int width = parameters.getPreviewSize().width;
                 int height = parameters.getPreviewSize().height;
 
@@ -227,16 +223,16 @@ public class MainActivity extends Activity {
                 } finally {
                 }*/
 
-                final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                //final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        imageView.setImageBitmap(bitmap);
+                        //imageView.setImageBitmap(bitmap);
                         textView.setText(elapsedTime == 0 ? "" : String.valueOf(time) + " мс");
                     }
                 });
-            }
+            //}
         }
     };
 
