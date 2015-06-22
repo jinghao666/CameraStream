@@ -278,134 +278,44 @@ public class MainActivity extends Activity {
     }
 
     // Обработка поворота изображения при повороте камеры.
-    //@TargetApi(9)
     private void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
-        // Определим, насколько повёрнута камера от нормального положения.
-        /*int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-        int degrees = 0;
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degrees = 0;
-                break;
-            case Surface.ROTATION_90:
-                degrees = 90;
-                break;
-            case Surface.ROTATION_180:
-                degrees = 180;
-                break;
-            case Surface.ROTATION_270:
-                degrees = 270;
-                break;
-        }
-
-        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-        android.hardware.Camera.getCameraInfo(cameraId, info);
-        int result = 0;
-        // Для передней и задней камеры по-разному считаются повороты.
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-            result = (360 - degrees) - info.orientation + 360;
-        else if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
-            result = (360 - degrees) + info.orientation;
-
-        result %= 360;
-        camera.setDisplayOrientation(result);*/
         camera.setDisplayOrientation(getScreenOrientation(activity, cameraId));
     }
 
-    // Определить ориентацию устройства.
-    // http://stackoverflow.com/questions/10380989/how-do-i-get-the-current-orientation-activityinfo-screen-orientation-of-an-a/10383164#10383164
-/*    private int getScreenOrientation() {
-        if (Build.VERSION.SDK_INT < 9)
-            return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-
-        int rotation = getWindowManager().getDefaultDisplay().getRotation();
-        DisplayMetrics dm = new DisplayMetrics();
-        getWindowManager().getDefaultDisplay().getMetrics(dm);
-        int width = dm.widthPixels;
-        int height = dm.heightPixels;
-        int orientation;
-        // if the device's natural orientation is portrait:
-        if ((rotation == Surface.ROTATION_0 || rotation == Surface.ROTATION_180) && height > width
-                || (rotation == Surface.ROTATION_90 || rotation == Surface.ROTATION_270) && width > height) {
-            switch(rotation) {
-                case Surface.ROTATION_0:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-                    break;
-                case Surface.ROTATION_90:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-                    break;
-                case Surface.ROTATION_180:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
-                    break;
-                case Surface.ROTATION_270:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-                    break;
-                default:
-                    //Log.e(TAG, "Unknown screen orientation. Defaulting to " +
-                    //        "portrait.");
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-                    break;
-            }
-        }
-        // if the device's natural orientation is landscape or if the device
-        // is square:
-        else {
-            switch(rotation) {
-                case Surface.ROTATION_0:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-                    break;
-                case Surface.ROTATION_90:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
-                    break;
-                case Surface.ROTATION_180:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE;
-                    break;
-                case Surface.ROTATION_270:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_REVERSE_PORTRAIT;
-                    break;
-                default:
-                    //Log.e(TAG, "Unknown screen orientation. Defaulting to " +
-                    //        "landscape.");
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-                    break;
-            }
-        }
-
-        return orientation;
-    }*/
-
+    // Определим, насколько повёрнута камера от нормального положения.
     private int getScreenOrientation(Activity activity, int cameraId) {
         if (Build.VERSION.SDK_INT < 9)
             return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+        else {
+            // Определим, насколько повёрнута камера от нормального положения.
+            int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+            int degrees = 0;
+            switch (rotation) {
+                case Surface.ROTATION_0:
+                    degrees = 0;
+                    break;
+                case Surface.ROTATION_90:
+                    degrees = 90;
+                    break;
+                case Surface.ROTATION_180:
+                    degrees = 180;
+                    break;
+                case Surface.ROTATION_270:
+                    degrees = 270;
+                    break;
+            }
 
-        // Определим, насколько повёрнута камера от нормального положения.
-        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
-        int degrees = 0;
-        switch (rotation) {
-            case Surface.ROTATION_0:
-                degrees = 0;
-                break;
-            case Surface.ROTATION_90:
-                degrees = 90;
-                break;
-            case Surface.ROTATION_180:
-                degrees = 180;
-                break;
-            case Surface.ROTATION_270:
-                degrees = 270;
-                break;
+            android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+            android.hardware.Camera.getCameraInfo(cameraId, info);
+            int result = 0;
+            // Для передней и задней камеры по-разному считаются повороты.
+            if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+                result = (360 - degrees) - info.orientation + 360;
+            else if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
+                result = (360 - degrees) + info.orientation;
+
+            result %= 360;
+            return result;
         }
-
-        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
-        android.hardware.Camera.getCameraInfo(cameraId, info);
-        int result = 0;
-        // Для передней и задней камеры по-разному считаются повороты.
-        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
-            result = (360 - degrees) - info.orientation + 360;
-        else if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
-            result = (360 - degrees) + info.orientation;
-
-        result %= 360;
-        return result;
     }
 }
