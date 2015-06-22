@@ -9,6 +9,7 @@ import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.ImageFormat;
+import android.graphics.Matrix;
 import android.graphics.Rect;
 import android.graphics.YuvImage;
 import android.hardware.Camera;
@@ -141,7 +142,7 @@ public class MainActivity extends Activity {
             // Определим список доступных разрешений экрана.
             List<Camera.Size> sizes = param.getSupportedPreviewSizes();
             if (sizes != null) {
-                int displayOrientation = getScreenOrientation();
+                int displayOrientation = getScreenOrientation(this, 0);
                 Camera.Size optimalSize = getOptimalPreviewSize(sizes, width, height, displayOrientation);
                 if (optimalSize != null) {
                     param.setPreviewSize(optimalSize.width, optimalSize.height);
@@ -197,10 +198,12 @@ public class MainActivity extends Activity {
             Camera.Parameters parameters = camera.getParameters();
             int format = parameters.getPreviewFormat();
             //YUV formats require more conversion
-            /*if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
+            if (format == ImageFormat.NV21 || format == ImageFormat.YUY2 || format == ImageFormat.NV16) {
                 int width = parameters.getPreviewSize().width;
                 int height = parameters.getPreviewSize().height;
 
+                Matrix matrix = new Matrix();
+                matrix.postRotate(getScreenOrientation(MainActivity.this, 0));
                 YuvImage yuvImage = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
 
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -224,15 +227,17 @@ public class MainActivity extends Activity {
                 }*/
 
                 //final Bitmap bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                Bitmap bmp = BitmapFactory.decodeByteArray(bytes, 0, bytes.length);
+                final Bitmap bitmap = Bitmap.createBitmap(bmp, 0, 0, width, height, matrix, true);
 
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
-                        //imageView.setImageBitmap(bitmap);
+                        imageView.setImageBitmap(bitmap);
                         textView.setText(elapsedTime == 0 ? "" : String.valueOf(time) + " мс");
                     }
                 });
-            //}
+            }
         }
     };
 
@@ -273,10 +278,10 @@ public class MainActivity extends Activity {
     }
 
     // Обработка поворота изображения при повороте камеры.
-    @TargetApi(9)
+    //@TargetApi(9)
     private void setCameraDisplayOrientation(Activity activity, int cameraId, android.hardware.Camera camera) {
         // Определим, насколько повёрнута камера от нормального положения.
-        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        /*int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
         int degrees = 0;
         switch (rotation) {
             case Surface.ROTATION_0:
@@ -302,14 +307,14 @@ public class MainActivity extends Activity {
         else if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
             result = (360 - degrees) + info.orientation;
 
-        //tv.setText(String.valueOf(result) + ", " + String.valueOf(degrees));
         result %= 360;
-        camera.setDisplayOrientation(result);
+        camera.setDisplayOrientation(result);*/
+        camera.setDisplayOrientation(getScreenOrientation(activity, cameraId));
     }
 
     // Определить ориентацию устройства.
     // http://stackoverflow.com/questions/10380989/how-do-i-get-the-current-orientation-activityinfo-screen-orientation-of-an-a/10383164#10383164
-    private int getScreenOrientation() {
+/*    private int getScreenOrientation() {
         if (Build.VERSION.SDK_INT < 9)
             return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
 
@@ -367,5 +372,40 @@ public class MainActivity extends Activity {
         }
 
         return orientation;
+    }*/
+
+    private int getScreenOrientation(Activity activity, int cameraId) {
+        if (Build.VERSION.SDK_INT < 9)
+            return ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
+
+        // Определим, насколько повёрнута камера от нормального положения.
+        int rotation = activity.getWindowManager().getDefaultDisplay().getRotation();
+        int degrees = 0;
+        switch (rotation) {
+            case Surface.ROTATION_0:
+                degrees = 0;
+                break;
+            case Surface.ROTATION_90:
+                degrees = 90;
+                break;
+            case Surface.ROTATION_180:
+                degrees = 180;
+                break;
+            case Surface.ROTATION_270:
+                degrees = 270;
+                break;
+        }
+
+        android.hardware.Camera.CameraInfo info = new android.hardware.Camera.CameraInfo();
+        android.hardware.Camera.getCameraInfo(cameraId, info);
+        int result = 0;
+        // Для передней и задней камеры по-разному считаются повороты.
+        if (info.facing == Camera.CameraInfo.CAMERA_FACING_FRONT)
+            result = (360 - degrees) - info.orientation + 360;
+        else if (info.facing == Camera.CameraInfo.CAMERA_FACING_BACK)
+            result = (360 - degrees) + info.orientation;
+
+        result %= 360;
+        return result;
     }
 }
