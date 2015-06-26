@@ -1,6 +1,5 @@
 package com.example.camerastream;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
 import android.content.Context;
 import android.content.pm.ActivityInfo;
@@ -15,7 +14,6 @@ import android.graphics.YuvImage;
 import android.hardware.Camera;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.DisplayMetrics;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
@@ -29,7 +27,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.List;
 
-public class MainActivity extends Activity {
+public class YuvImageActivity extends Activity {
     private Camera camera;
     private SurfaceHolder surfaceHolder;
     private ImageView imageView;
@@ -45,7 +43,7 @@ public class MainActivity extends Activity {
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN,
                 WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_yuv_image);
 
         lockScreenOrientation();
 
@@ -203,7 +201,7 @@ public class MainActivity extends Activity {
                 int height = parameters.getPreviewSize().height;
 
                 Matrix matrix = new Matrix();
-                matrix.postRotate(getScreenOrientation(MainActivity.this, 0));
+                matrix.postRotate(getScreenOrientation(YuvImageActivity.this, 0));
                 YuvImage yuvImage = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
 
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
